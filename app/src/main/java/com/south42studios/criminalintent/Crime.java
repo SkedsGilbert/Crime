@@ -1,5 +1,7 @@
 package com.south42studios.criminalintent;
 
+import android.text.format.Time;
+
 import java.util.Date;
 import java.util.UUID;
 
@@ -10,6 +12,7 @@ public class Crime {
     private UUID mID;
     private String mTitle;
     private Date mDate;
+    private Time mTime;
     private boolean mSolved;
 
     public Crime(){
