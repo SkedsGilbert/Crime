@@ -139,6 +139,7 @@ public class CrimeFragment extends Fragment {
             mCrime.setDate(date);
             updateDate();
         }
+
     }
 
 }
