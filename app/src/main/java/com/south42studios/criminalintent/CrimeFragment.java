@@ -134,10 +134,22 @@ public class CrimeFragment extends Fragment {
             return;
         }
 
-        if (requestCode == REQUEST_DATE){
-            Date date = (Date) data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
-            mCrime.setDate(date);
-            updateDate();
+        switch (requestCode){
+            case REQUEST_DATE:
+                Date date = (Date) data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
+                mCrime.setDate(date);
+                updateDate();
+                break;
+
+            case REQUEST_TIME:
+                Date dateTime = (Date) data.getSerializableExtra(TimePickerFragment.EXTRA_DATE);
+                mCrime.setDate(dateTime);
+                updateTime();
+                break;
+
+            default:
+                break;
+
         }
 
     }
