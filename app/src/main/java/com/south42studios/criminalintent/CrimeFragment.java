@@ -79,7 +79,6 @@ public class CrimeFragment extends Fragment {
         });
 
         mDateButton = (Button) v.findViewById(R.id.crime_date);
-        // Get date
         updateDate();
 
         mDateButton.setOnClickListener(new View.OnClickListener() {
