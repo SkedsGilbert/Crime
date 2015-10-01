@@ -2,6 +2,7 @@ package com.south42studios.criminalintent;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -9,6 +10,9 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -28,6 +32,7 @@ public class CrimeFragment extends Fragment {
 
     private static final String TAG = "com.south42studios";
     private static final String ARG_CRIME_ID = "crime_id";
+    private static final String ARG_POSITION = "position";
     private static final String DIALOG_DATE = "DialogDate";
     private static final String DIALOG_TIME = "DialogTime";
     private static final int REQUEST_DATE = 0;
@@ -37,10 +42,12 @@ public class CrimeFragment extends Fragment {
     private Button mDateButton;
     private Button mTimeButton;
     private CheckBox mSolvedCheckBox;
+    private int crimePosition;
 
-    public static CrimeFragment newInstance(UUID crimeId){
+    public static CrimeFragment newInstance(UUID crimeId, int position){
         Bundle args = new Bundle();
         args.putSerializable(ARG_CRIME_ID, crimeId);
+        args.putInt(ARG_POSITION,position);
 
         CrimeFragment fragment = new CrimeFragment();
         fragment.setArguments(args);
@@ -50,8 +57,11 @@ public class CrimeFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         UUID crimeID = (UUID) getArguments().getSerializable(ARG_CRIME_ID);
+        crimePosition = getArguments().getInt(ARG_POSITION);
         mCrime = CrimeLab.get(getActivity()).getCrimes(crimeID);
+
     }
 
     @Override
@@ -151,6 +161,27 @@ public class CrimeFragment extends Fragment {
 
         }
 
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+        super.onCreateOptionsMenu(menu,inflater);
+        inflater.inflate(R.menu.fragment_crime,menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case R.id.menu_item_delete_crime:
+                Log.d(TAG, "Crime position is: " + crimePosition);
+                CrimeLab.get(getActivity()).removeCrime(crimePosition);
+
+                Intent intent = new Intent(CrimeFragment.this.getActivity(),CrimeListActivity.class);
+                startActivity(intent);
+                return true;
+            default: return super.onOptionsItemSelected(item);
+
+        }
     }
 
 }
