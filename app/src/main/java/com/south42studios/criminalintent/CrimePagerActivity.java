@@ -25,14 +25,14 @@ public class CrimePagerActivity extends AppCompatActivity {
     private ViewPager mViewPager;
     private List<Crime> mCrimes;
 
-    public static Intent newIntent(Context packageContext, UUID crimeId){
-        Intent intent = new Intent(packageContext,CrimePagerActivity.class);
-        intent.putExtra(EXTRA_CRIME_ID,crimeId);
+    public static Intent newIntent(Context packageContext, UUID crimeId) {
+        Intent intent = new Intent(packageContext, CrimePagerActivity.class);
+        intent.putExtra(EXTRA_CRIME_ID, crimeId);
         return intent;
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState){
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_crime_pager);
 
@@ -47,7 +47,7 @@ public class CrimePagerActivity extends AppCompatActivity {
             public Fragment getItem(int position) {
                 Crime crime = mCrimes.get(position);
 
-                return CrimeFragment.newInstance(crime.getID(),position);
+                return CrimeFragment.newInstance(crime.getID(), position);
             }
 
             @Override
@@ -56,8 +56,8 @@ public class CrimePagerActivity extends AppCompatActivity {
             }
         });
 
-        for (int i = 0; i < mCrimes.size(); i++){
-            if (mCrimes.get(i).getID().equals(crimeId)){
+        for (int i = 0; i < mCrimes.size(); i++) {
+            if (mCrimes.get(i).getID().equals(crimeId)) {
                 mViewPager.setCurrentItem(i);
                 break;
             }

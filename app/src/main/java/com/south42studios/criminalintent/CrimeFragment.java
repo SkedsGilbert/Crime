@@ -19,6 +19,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 
 
 import java.text.SimpleDateFormat;
@@ -44,10 +45,11 @@ public class CrimeFragment extends Fragment {
     private CheckBox mSolvedCheckBox;
     private int crimePosition;
 
-    public static CrimeFragment newInstance(UUID crimeId, int position){
+
+    public static CrimeFragment newInstance(UUID crimeId, int position) {
         Bundle args = new Bundle();
         args.putSerializable(ARG_CRIME_ID, crimeId);
-        args.putInt(ARG_POSITION,position);
+        args.putInt(ARG_POSITION, position);
 
         CrimeFragment fragment = new CrimeFragment();
         fragment.setArguments(args);
@@ -55,7 +57,7 @@ public class CrimeFragment extends Fragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState){
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         UUID crimeID = (UUID) getArguments().getSerializable(ARG_CRIME_ID);
@@ -65,8 +67,15 @@ public class CrimeFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater,ViewGroup container, Bundle savedInstanceState){
-        View v = inflater.inflate(R.layout.fragment_crime,container,false);
+    public void onPause() {
+        super.onPause();
+
+        CrimeLab.get(getActivity()).updateCrime(mCrime);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.fragment_crime, container, false);
 
         mTitleField = (EditText) v.findViewById(R.id.crime_title);
         mTitleField.setText(mCrime.getTitle());
@@ -97,7 +106,7 @@ public class CrimeFragment extends Fragment {
                 FragmentManager manager = getFragmentManager();
                 DatePickerFragment dialog = DatePickerFragment.newInstance(mCrime.getDate());
                 dialog.setTargetFragment(CrimeFragment.this, REQUEST_DATE);
-                dialog.show(manager,DIALOG_DATE);
+                dialog.show(manager, DIALOG_DATE);
             }
         });
 
@@ -108,8 +117,8 @@ public class CrimeFragment extends Fragment {
             public void onClick(View v) {
                 FragmentManager manager = getFragmentManager();
                 TimePickerFragment dialog = TimePickerFragment.newInstance(mCrime.getDate());
-                dialog.setTargetFragment(CrimeFragment.this,REQUEST_TIME);
-                dialog.show(manager,DIALOG_TIME);
+                dialog.setTargetFragment(CrimeFragment.this, REQUEST_TIME);
+                dialog.show(manager, DIALOG_TIME);
             }
         });
         updateTime();
@@ -132,18 +141,18 @@ public class CrimeFragment extends Fragment {
         mDateButton.setText(dateFormat.format(mCrime.getDate()));
     }
 
-    private void updateTime(){
+    private void updateTime() {
         SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a");
         mTimeButton.setText(timeFormat.format(mCrime.getDate()));
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data){
-        if (resultCode != Activity.RESULT_OK){
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_OK) {
             return;
         }
 
-        switch (requestCode){
+        switch (requestCode) {
             case REQUEST_DATE:
                 Date date = (Date) data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
                 mCrime.setDate(date);
@@ -164,22 +173,23 @@ public class CrimeFragment extends Fragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
-        super.onCreateOptionsMenu(menu,inflater);
-        inflater.inflate(R.menu.fragment_crime,menu);
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_crime, menu);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item){
-        switch (item.getItemId()){
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
             case R.id.menu_item_delete_crime:
                 Log.d(TAG, "Crime position is: " + crimePosition);
                 CrimeLab.get(getActivity()).removeCrime(crimePosition);
 
-                Intent intent = new Intent(CrimeFragment.this.getActivity(),CrimeListActivity.class);
+                Intent intent = new Intent(CrimeFragment.this.getActivity(), CrimeListActivity.class);
                 startActivity(intent);
                 return true;
-            default: return super.onOptionsItemSelected(item);
+            default:
+                return super.onOptionsItemSelected(item);
 
         }
     }
