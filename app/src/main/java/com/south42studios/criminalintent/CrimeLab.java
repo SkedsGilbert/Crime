@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.Telephony;
+import android.util.Log;
 
 import com.south42studios.criminalintent.database.CrimeBaseHelper;
 import com.south42studios.criminalintent.database.CrimeCursorWrapper;
@@ -22,6 +23,7 @@ public class CrimeLab {
     private static CrimeLab sCrimeLab;
     private Context mContext;
     private SQLiteDatabase mDatabase;
+    private static final String TAG = "com.south42studios";
 
     public static CrimeLab get(Context context) {
         if (sCrimeLab == null) {
@@ -59,13 +61,18 @@ public class CrimeLab {
         mDatabase.insert(CrimeTable.NAME, null, values);
     }
 
-    public void removeCrime(int c) {
+    public void removeCrime(Crime c) {
+        ContentValues values = getContentValues(c);
+        String uuid = values.get(CrimeTable.Cols.UUID).toString();
+        mDatabase.delete(CrimeTable.NAME,CrimeTable.Cols.UUID + "= ?"
+                ,new String[]{uuid});
+
     }
 
     public Crime getCrimes(UUID id) {
         CrimeCursorWrapper cursor = queryCrimes(
-                CrimeTable.Cols.UUID + " =? ",
-                new String[] {id.toString()}
+                CrimeTable.Cols.UUID + " =? "
+                ,new String[] {id.toString()}
         );
 
         try {
@@ -92,6 +99,7 @@ public class CrimeLab {
     private static ContentValues getContentValues(Crime crime) {
         ContentValues values = new ContentValues();
         values.put(CrimeTable.Cols.UUID, crime.getID().toString());
+        Log.d(TAG, "Crime UUID is: " + values.get(CrimeTable.Cols.UUID));
         values.put(CrimeTable.Cols.TITLE, crime.getTitle());
         values.put(CrimeTable.Cols.DATE, crime.getDate().getTime());
         values.put(CrimeTable.Cols.SOLVED, crime.isSolved() ? 1 : 0);

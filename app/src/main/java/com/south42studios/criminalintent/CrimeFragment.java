@@ -183,7 +183,7 @@ public class CrimeFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.menu_item_delete_crime:
                 Log.d(TAG, "Crime position is: " + crimePosition);
-                CrimeLab.get(getActivity()).removeCrime(crimePosition);
+                CrimeLab.get(getActivity()).removeCrime(mCrime);
 
                 Intent intent = new Intent(CrimeFragment.this.getActivity(), CrimeListActivity.class);
                 startActivity(intent);
