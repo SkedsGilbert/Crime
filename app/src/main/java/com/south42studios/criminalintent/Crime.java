@@ -1,7 +1,5 @@
 package com.south42studios.criminalintent;
 
-import android.text.format.Time;
-
 import java.util.Date;
 import java.util.UUID;
 
@@ -13,6 +11,7 @@ public class Crime {
     private String mTitle;
     private Date mDate;
     private boolean mSolved;
+    private String mSuspect;
 
     public Crime() {
         this(UUID.randomUUID());
@@ -22,7 +21,7 @@ public class Crime {
         return mID;
     }
 
-    public Crime(UUID id){
+    public Crime(UUID id) {
         mID = id;
         mDate = new Date();
     }
@@ -49,5 +48,13 @@ public class Crime {
 
     public void setSolved(boolean solved) {
         mSolved = solved;
+    }
+
+    public String getSuspect() {
+        return mSuspect;
+    }
+
+    public void setSuspect(String suspect) {
+        mSuspect = suspect;
     }
 }
