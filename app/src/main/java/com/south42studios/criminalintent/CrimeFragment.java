@@ -1,7 +1,6 @@
 package com.south42studios.criminalintent;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -49,9 +48,10 @@ public class CrimeFragment extends Fragment {
     private Button mTimeButton;
     private Button mSendReportButton;
     private Button mSuspectButton;
+    private Button mCallSuspectButton;
     private CheckBox mSolvedCheckBox;
-    CrimeFragment mContext = this;
     private int crimePosition;
+    private String contactID;
 
 
     public static CrimeFragment newInstance(UUID crimeId, int position) {
@@ -172,6 +172,18 @@ public class CrimeFragment extends Fragment {
             }
         });
 
+        // Need to add PackageManager to check if dialer is available!
+
+        mCallSuspectButton = (Button) v.findViewById(R.id.call_suspect_button);
+        mCallSuspectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Uri number = Uri.parse("tel:" + mCrime.getPhoneNumber());
+                final Intent callSuspect = new Intent(Intent.ACTION_DIAL,number);
+                startActivityForResult(callSuspect, REQUEST_CONTACT);
+            }
+        });
+
         if (mCrime.getSuspect() != null) {
             mSuspectButton.setText(mCrime.getSuspect());
         }
@@ -208,8 +220,6 @@ public class CrimeFragment extends Fragment {
             suspect = getString(R.string.crime_report_suspect, suspect);
         }
 
-        String subject = getString(R.string.crime_report_subject);
-
         String report = getString(R.string.crime_report, mCrime.getTitle(), dateString, solvedString, suspect);
 
         return report;
@@ -238,7 +248,7 @@ public class CrimeFragment extends Fragment {
                 if (data != null) {
                     Uri contactUri = data.getData();
                     String[] queryFields = new String[]{
-                            ContactsContract.Contacts.DISPLAY_NAME
+                            ContactsContract.Contacts.DISPLAY_NAME,ContactsContract.Contacts._ID
                     };
 
                     Cursor c = getActivity().getContentResolver().query(contactUri, queryFields, null, null, null);
@@ -250,11 +260,35 @@ public class CrimeFragment extends Fragment {
 
                         c.moveToFirst();
                         String suspect = c.getString(0);
+                        contactID = c.getString(1);
                         mCrime.setSuspect(suspect);
                         mSuspectButton.setText(suspect);
                     } finally {
                         c.close();
                     }
+
+
+                        Cursor phoneCursor =
+                                getActivity().getContentResolver().query(
+                                        ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                                        null,
+                                        ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = "
+                                        + contactID,
+                                        null,
+                                        null
+                                );
+                        try {
+                            if (phoneCursor.getCount() == 0) {
+                                return;
+                            }
+
+                            phoneCursor.moveToFirst();
+                            String phoneNumber = phoneCursor.getString(phoneCursor.getColumnIndex
+                                    (ContactsContract.CommonDataKinds.Phone.NUMBER));
+                            mCrime.setPhoneNumber(phoneNumber);
+                        } finally {
+                            phoneCursor.close();
+                        }
                 }
 
                 break;
@@ -277,7 +311,6 @@ public class CrimeFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_item_delete_crime:
-                Log.d(TAG, "Crime position is: " + crimePosition);
                 CrimeLab.get(getActivity()).removeCrime(mCrime);
 
                 Intent intent = new Intent(CrimeFragment.this.getActivity(), CrimeListActivity.class);
