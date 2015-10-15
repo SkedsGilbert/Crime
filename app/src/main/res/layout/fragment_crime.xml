@@ -1,50 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:tools="http://schemas.android.com/tools"
-              android:orientation="vertical"
               android:layout_width="match_parent"
-              android:layout_height="match_parent">
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+    <include layout="@layout/view_camera_and_title"/>
+
 
     <TextView
+        style="?android:listSeparatorTextViewStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/crime_title_label"
-        style="?android:listSeparatorTextViewStyle"/>
-
-    <EditText
-        android:id="@+id/crime_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/crime_title_hint" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/crime_detail_label"
-        style="?android:listSeparatorTextViewStyle"/>
+        android:text="@string/crime_detail_label"/>
 
     <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/crime_date"
-            tools:text="Date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            tools:text="Date"/>
 
         <Button
             android:id="@+id/crime_time"
-            tools:text="Time"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            tools:text="Time"/>
     </LinearLayout>
 
     <CheckBox
@@ -56,9 +47,9 @@
         android:text="@string/crime_solved_label"/>
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
         <Button
             android:id="@+id/crime_suspect_button"
