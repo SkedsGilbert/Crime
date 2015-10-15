@@ -12,6 +12,8 @@ import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.ShareCompat;
+import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AlertDialog;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -29,6 +31,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
@@ -43,6 +46,7 @@ public class CrimeFragment extends Fragment {
     private static final String ARG_POSITION = "position";
     private static final String DIALOG_DATE = "DialogDate";
     private static final String DIALOG_TIME = "DialogTime";
+    private static final String DIALOG_ZOOM = "DialogZoom";
     private static final int REQUEST_DATE = 0;
     private static final int REQUEST_TIME = 1;
     private static final int REQUEST_CONTACT = 2;
@@ -212,7 +216,24 @@ public class CrimeFragment extends Fragment {
         });
 
         mPhotoView = (ImageView) v.findViewById(R.id.crime_photo);
-        updatePhotoView();
+        mPhotoView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bitmap bitmap = null;
+                try {
+                    bitmap = PictureUtils.getScaledBitmap(mPhotoFile.getPath(), getActivity());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                ZoomPhotoFragment zoomPhotoFragment = ZoomPhotoFragment.newInstance(bitmap);
+                zoomPhotoFragment.show(getFragmentManager(),DIALOG_ZOOM);
+            }
+        });
+        try {
+            updatePhotoView();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         if (mCrime.getSuspect() != null) {
             mSuspectButton.setText(mCrime.getSuspect());
@@ -231,7 +252,7 @@ public class CrimeFragment extends Fragment {
         mTimeButton.setText(timeFormat.format(mCrime.getDate()));
     }
 
-    private void updatePhotoView() {
+    private void updatePhotoView() throws IOException {
         if (mPhotoFile == null || !mPhotoFile.exists()) {
             mPhotoView.setImageDrawable(null);
         } else {
@@ -333,7 +354,11 @@ public class CrimeFragment extends Fragment {
                 break;
 
             case REQUEST_PHOTO:
-                updatePhotoView();
+                try {
+                    updatePhotoView();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
             default:
                 break;
