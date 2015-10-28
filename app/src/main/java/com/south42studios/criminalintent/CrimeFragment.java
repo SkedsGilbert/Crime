@@ -12,6 +12,8 @@ import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.ShareCompat;
+import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AlertDialog;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -29,6 +31,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
@@ -43,6 +46,7 @@ public class CrimeFragment extends Fragment {
     private static final String ARG_POSITION = "position";
     private static final String DIALOG_DATE = "DialogDate";
     private static final String DIALOG_TIME = "DialogTime";
+    private static final String DIALOG_ZOOM = "DialogZoom";
     private static final int REQUEST_DATE = 0;
     private static final int REQUEST_TIME = 1;
     private static final int REQUEST_CONTACT = 2;
@@ -59,12 +63,31 @@ public class CrimeFragment extends Fragment {
     private Button mCallSuspectButton;
     private CheckBox mSolvedCheckBox;
     private String contactID;
+    private Callbacks mCallbacks;
 
+    public interface Callbacks {
+        void onCrimeUpdated(Crime crime);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mCallbacks = (Callbacks) activity;
+    }
 
     public static CrimeFragment newInstance(UUID crimeId, int position) {
         Bundle args = new Bundle();
         args.putSerializable(ARG_CRIME_ID, crimeId);
         args.putInt(ARG_POSITION, position);
+
+        CrimeFragment fragment = new CrimeFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static CrimeFragment newInstance(UUID crimeId) {
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_CRIME_ID, crimeId);
 
         CrimeFragment fragment = new CrimeFragment();
         fragment.setArguments(args);
@@ -89,6 +112,12 @@ public class CrimeFragment extends Fragment {
     }
 
     @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallbacks = null;
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_crime, container, false);
 
@@ -103,6 +132,7 @@ public class CrimeFragment extends Fragment {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 mCrime.setTitle(s.toString());
+                updateCrime();
 
             }
 
@@ -145,6 +175,7 @@ public class CrimeFragment extends Fragment {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 mCrime.setSolved(isChecked);
+                updateCrime();
             }
         });
 
@@ -212,13 +243,35 @@ public class CrimeFragment extends Fragment {
         });
 
         mPhotoView = (ImageView) v.findViewById(R.id.crime_photo);
-        updatePhotoView();
+        mPhotoView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bitmap bitmap = null;
+                try {
+                    bitmap = PictureUtils.getScaledBitmap(mPhotoFile.getPath(), getActivity());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                ZoomPhotoFragment zoomPhotoFragment = ZoomPhotoFragment.newInstance(bitmap);
+                zoomPhotoFragment.show(getFragmentManager(), DIALOG_ZOOM);
+            }
+        });
+        try {
+            updatePhotoView();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         if (mCrime.getSuspect() != null) {
             mSuspectButton.setText(mCrime.getSuspect());
         }
 
         return v;
+    }
+
+    private void updateCrime() {
+        CrimeLab.get(getActivity()).updateCrime(mCrime);
+        mCallbacks.onCrimeUpdated(mCrime);
     }
 
     private void updateDate() {
@@ -231,7 +284,7 @@ public class CrimeFragment extends Fragment {
         mTimeButton.setText(timeFormat.format(mCrime.getDate()));
     }
 
-    private void updatePhotoView() {
+    private void updatePhotoView() throws IOException {
         if (mPhotoFile == null || !mPhotoFile.exists()) {
             mPhotoView.setImageDrawable(null);
         } else {
@@ -274,12 +327,14 @@ public class CrimeFragment extends Fragment {
             case REQUEST_DATE:
                 Date date = (Date) data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
                 mCrime.setDate(date);
+                updateCrime();
                 updateDate();
                 break;
 
             case REQUEST_TIME:
                 Date dateTime = (Date) data.getSerializableExtra(TimePickerFragment.EXTRA_DATE);
                 mCrime.setDate(dateTime);
+                updateCrime();
                 updateTime();
                 break;
 
@@ -333,7 +388,12 @@ public class CrimeFragment extends Fragment {
                 break;
 
             case REQUEST_PHOTO:
-                updatePhotoView();
+                try {
+                    updateCrime();
+                    updatePhotoView();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
             default:
                 break;

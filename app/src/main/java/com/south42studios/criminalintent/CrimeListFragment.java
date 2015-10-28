@@ -1,5 +1,7 @@
 package com.south42studios.criminalintent;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -24,6 +26,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import javax.security.auth.callback.Callback;
+
 /**
  * Created by Jsin on 8/30/2015.
  */
@@ -34,8 +38,19 @@ public class CrimeListFragment extends Fragment {
     private static final String TAG = "com.south42studios";
     private int position;
     private boolean mSubTitleVisible;
+    private Callbacks mCallbacks;
     private LinearLayout mNoCrimesLayout;
     private Button newCrimeButton;
+
+    public interface Callbacks {
+        void onCrimeSelected(Crime crime);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mCallbacks = (Callbacks) activity;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -85,6 +100,12 @@ public class CrimeListFragment extends Fragment {
     }
 
     @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallbacks = null;
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_crime_list, menu);
@@ -103,8 +124,8 @@ public class CrimeListFragment extends Fragment {
             case R.id.menu_item_new_crime:
                 Crime crime = new Crime();
                 CrimeLab.get(getActivity()).addCrime(crime);
-                Intent intent = CrimePagerActivity.newIntent(getActivity(), crime.getID());
-                startActivity(intent);
+                updateUI();
+                mCallbacks.onCrimeSelected(crime);
                 return true;
             case R.id.menu_item_show_subtitle:
                 mSubTitleVisible = !mSubTitleVisible;
@@ -128,7 +149,7 @@ public class CrimeListFragment extends Fragment {
         activity.getSupportActionBar().setSubtitle(subtitle);
     }
 
-    private void updateUI() {
+    public void updateUI() {
         CrimeLab crimeLab = CrimeLab.get(getActivity());
         List<Crime> crimes = crimeLab.getCrimes();
 
@@ -179,8 +200,7 @@ public class CrimeListFragment extends Fragment {
         @Override
         public void onClick(View v) {
             position = getPosition();
-            Intent intent = CrimePagerActivity.newIntent(getActivity(), mCrime.getID());
-            startActivity(intent);
+            mCallbacks.onCrimeSelected(mCrime);
         }
     }
 
