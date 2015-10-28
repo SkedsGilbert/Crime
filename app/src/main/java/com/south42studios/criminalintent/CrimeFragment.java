@@ -63,12 +63,31 @@ public class CrimeFragment extends Fragment {
     private Button mCallSuspectButton;
     private CheckBox mSolvedCheckBox;
     private String contactID;
+    private Callbacks mCallbacks;
 
+    public interface Callbacks {
+        void onCrimeUpdated(Crime crime);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mCallbacks = (Callbacks) activity;
+    }
 
     public static CrimeFragment newInstance(UUID crimeId, int position) {
         Bundle args = new Bundle();
         args.putSerializable(ARG_CRIME_ID, crimeId);
         args.putInt(ARG_POSITION, position);
+
+        CrimeFragment fragment = new CrimeFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static CrimeFragment newInstance(UUID crimeId) {
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_CRIME_ID, crimeId);
 
         CrimeFragment fragment = new CrimeFragment();
         fragment.setArguments(args);
@@ -93,6 +112,12 @@ public class CrimeFragment extends Fragment {
     }
 
     @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallbacks = null;
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_crime, container, false);
 
@@ -107,6 +132,7 @@ public class CrimeFragment extends Fragment {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 mCrime.setTitle(s.toString());
+                updateCrime();
 
             }
 
@@ -149,6 +175,7 @@ public class CrimeFragment extends Fragment {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 mCrime.setSolved(isChecked);
+                updateCrime();
             }
         });
 
@@ -226,7 +253,7 @@ public class CrimeFragment extends Fragment {
                     e.printStackTrace();
                 }
                 ZoomPhotoFragment zoomPhotoFragment = ZoomPhotoFragment.newInstance(bitmap);
-                zoomPhotoFragment.show(getFragmentManager(),DIALOG_ZOOM);
+                zoomPhotoFragment.show(getFragmentManager(), DIALOG_ZOOM);
             }
         });
         try {
@@ -240,6 +267,11 @@ public class CrimeFragment extends Fragment {
         }
 
         return v;
+    }
+
+    private void updateCrime() {
+        CrimeLab.get(getActivity()).updateCrime(mCrime);
+        mCallbacks.onCrimeUpdated(mCrime);
     }
 
     private void updateDate() {
@@ -295,12 +327,14 @@ public class CrimeFragment extends Fragment {
             case REQUEST_DATE:
                 Date date = (Date) data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
                 mCrime.setDate(date);
+                updateCrime();
                 updateDate();
                 break;
 
             case REQUEST_TIME:
                 Date dateTime = (Date) data.getSerializableExtra(TimePickerFragment.EXTRA_DATE);
                 mCrime.setDate(dateTime);
+                updateCrime();
                 updateTime();
                 break;
 
@@ -355,6 +389,7 @@ public class CrimeFragment extends Fragment {
 
             case REQUEST_PHOTO:
                 try {
+                    updateCrime();
                     updatePhotoView();
                 } catch (IOException e) {
                     e.printStackTrace();
